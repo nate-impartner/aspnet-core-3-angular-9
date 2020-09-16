@@ -8,8 +8,14 @@ namespace HealthCheck
 {
 	public class ICMPHealthCheck : IHealthCheck
 	{
-		private string host = "www.does-not-exist.com";
-		private int timeout = 300;
+		public string Host { get; private set; }
+		public int Timeout { get; private set; }
+
+		public ICMPHealthCheck(string host, int timeOut)
+		{
+			Host = host;
+			Timeout = timeOut;
+		}
 
 		#region Implementation of IHealthCheck
 
@@ -19,21 +25,28 @@ namespace HealthCheck
 			try
 			{
 				using var ping = new Ping();
-				var reply = await ping.SendPingAsync(host);
+				var reply = await ping.SendPingAsync(Host);
 
 				switch(reply.Status)
 				{
 					case IPStatus.Success:
-						return (reply.RoundtripTime > timeout)
-							? HealthCheckResult.Degraded()
-							: HealthCheckResult.Healthy();
+					{
+						var msg = $"IMCP to {Host} took {reply.RoundtripTime} ms";
+						return (reply.RoundtripTime > Timeout)
+							? HealthCheckResult.Degraded(msg)
+							: HealthCheckResult.Healthy(msg);
+					}
 					default:
-						return HealthCheckResult.Unhealthy();
+					{
+						var err = $"IMCP to {Host} failed: {reply.Status}";
+						return HealthCheckResult.Unhealthy(err);
+					}
 				}
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
-				return HealthCheckResult.Unhealthy();
+				var err = $"IMCP to {Host} failed: {e.Message}";
+				return HealthCheckResult.Unhealthy(err);
 			}
 		}
 

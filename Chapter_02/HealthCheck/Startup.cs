@@ -28,7 +28,9 @@ namespace HealthCheck
             });
 
             services.AddHealthChecks()
-	            .AddCheck<ICMPHealthCheck>("ICMP");
+	            .AddCheck("ICMP_0", new ICMPHealthCheck("https://google.com", 100))
+	            .AddCheck("ICMP_1", new ICMPHealthCheck("https://ryadel.com", 100))
+	            .AddCheck("ICMP_2", new ICMPHealthCheck("https://does-not-exist.com", 100));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
